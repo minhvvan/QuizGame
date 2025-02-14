@@ -15,16 +15,20 @@ public class GamePanelController : MonoBehaviour
     private List<QuizData> _quizDataList = new();
     private List<QuizCardController> _cardControllers = new();
     private int _quizIdx;
-    
+    private int _lastStageIndex;
+
     private void Start()
     {
-        _quizDataList = QuizDataController.LoadQuizData(0);
         _quizIdx = 0;
+        _lastStageIndex = UserInformations.LastStageIndex;
+        
         InitQuizCard();
     }
 
     private void InitQuizCard()
     {
+        _quizDataList = QuizDataController.LoadQuizData(_lastStageIndex + 1);
+
         for (int i = 0; i < 3; i++)
         {
             var newCard = ObjectPool.Instance.GetObject();
@@ -43,9 +47,9 @@ public class GamePanelController : MonoBehaviour
             }
         }
         
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < _cardControllers.Count; i++)
         {
-            _cardControllers[i].transform.SetSiblingIndex(3 - i);
+            _cardControllers[i].transform.SetSiblingIndex(_cardControllers.Count - 1 - i);
         }
 
         _cardControllers.Last().gameObject.SetActive(false);
@@ -55,7 +59,9 @@ public class GamePanelController : MonoBehaviour
     {
         if (cardIndex == _quizDataList.Count - 1)
         {
-            Debug.Log("End Game");
+            //TODO: Clear 연출
+            _lastStageIndex++;
+            InitQuizCard();
         }
         
         StartCoroutine(ShowNextQuiz(cardIndex));
@@ -95,10 +101,5 @@ public class GamePanelController : MonoBehaviour
                  rect.SetSiblingIndex(3-i);
             }
         }
-    }
-    
-    public void OnClickGameOverButton()
-    {
-        GameManager.Instance.QuitGame();
     }
 }
