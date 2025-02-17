@@ -52,6 +52,7 @@ public class GamePanelController : MonoBehaviour
             _cardControllers[i].transform.SetSiblingIndex(_cardControllers.Count - 1 - i);
         }
 
+        _cardControllers.First().StartQuiz();
         _cardControllers.Last().gameObject.SetActive(false);
     }
     
@@ -59,6 +60,7 @@ public class GamePanelController : MonoBehaviour
     {
         if (cardIndex == _quizDataList.Count - 1)
         {
+            //TODO: Stage 전체 Clear 처리
             //TODO: Clear 연출
             _lastStageIndex++;
             InitQuizCard();
@@ -83,6 +85,7 @@ public class GamePanelController : MonoBehaviour
                 }
                 
                 _cardControllers[currentCardIdx].gameObject.SetActive(false);
+                _cardControllers[currentCardIdx].PauseQuiz();
                 _quizIdx++;
             }).WaitForCompletion();
         }
@@ -95,11 +98,14 @@ public class GamePanelController : MonoBehaviour
             _cardControllers[next].gameObject.SetActive(true);
             if (_cardControllers[next].TryGetComponent<RectTransform>(out var rect))
             {
+                rect.SetSiblingIndex(3 - i);
+                var i1 = i;
                 DOTween.Sequence()
-                    .Append(rect.DOScale(Vector3.one * Mathf.Pow(0.9f, i-1), .3f).SetEase(Ease.Linear))
-                    .Join(rect.DOAnchorPos(new Vector2(0, 150f * (i-1)), .3f).SetEase(Ease.Linear));
-                 rect.SetSiblingIndex(3-i);
+                    .Append(rect.DOScale(Vector3.one * Mathf.Pow(0.9f, i - 1), .3f).SetEase(Ease.Linear))
+                    .Join(rect.DOAnchorPos(new Vector2(0, 150f * (i - 1)), .3f).SetEase(Ease.Linear));
             }
         }
+        
+        _cardControllers[(currentIdx + 1) % 3].StartQuiz();
     }
 }

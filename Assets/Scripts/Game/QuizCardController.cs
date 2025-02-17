@@ -31,6 +31,7 @@ public class QuizCardController : MonoBehaviour
     [SerializeField] private GameObject incorrectBackPanel;
 
     [SerializeField] private TMP_Text heartCountText;
+    [SerializeField] private RoundTimer timer;
     
     private enum PanelType { Front, Correct, Incorrect }
 
@@ -47,6 +48,8 @@ public class QuizCardController : MonoBehaviour
         _correctBackPanelPosition = correctBackPanel.GetComponent<RectTransform>().anchoredPosition;
         _incorrectBackPanelPosition = incorrectBackPanel.GetComponent<RectTransform>().anchoredPosition;
 
+        timer.onTimerExpired += OnTimerExpired;
+        timer.gameObject.SetActive(false);
         GameManager.Instance.onChangeHeart += OnChangedHeart;
     }
 
@@ -83,6 +86,8 @@ public class QuizCardController : MonoBehaviour
 
     public void OnClickQuizButton(int idx)
     {
+        timer.PauseTimer();
+        
         if (_answerIdx == idx)
         {
             ShowPanel(PanelType.Correct);
@@ -109,6 +114,7 @@ public class QuizCardController : MonoBehaviour
         {
             GameManager.Instance.HeartCount--;
             ShowPanel(PanelType.Front);
+            StartQuiz();
         }
         else
         {
@@ -151,5 +157,22 @@ public class QuizCardController : MonoBehaviour
                 incorrectBackPanel.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
                 break;
         }
+    }
+    
+    public void StartQuiz()
+    {
+        timer.ResetTimer();
+        timer.StartTimer();
+    }
+
+    public void PauseQuiz()
+    {
+        timer.gameObject.SetActive(false);
+        timer.PauseTimer();
+    }
+    
+    private void OnTimerExpired()
+    {
+        ShowPanel(PanelType.Incorrect);
     }
 }
