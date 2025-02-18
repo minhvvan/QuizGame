@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -30,8 +32,8 @@ public class QuizCardController : MonoBehaviour
     [SerializeField] private GameObject correctBackPanel;
     [SerializeField] private GameObject incorrectBackPanel;
 
-    [SerializeField] private TMP_Text heartCountText;
     [SerializeField] private RoundTimer timer;
+    [SerializeField] private HeartPanelController heartPanelController;
     
     private enum PanelType { Front, Correct, Incorrect }
 
@@ -80,21 +82,21 @@ public class QuizCardController : MonoBehaviour
         
         ShowPanel(PanelType.Front);
         this.onCompleted = onCompleted;
-        heartCountText.text = GameManager.Instance.HeartCount.ToString();
         _idx = idx;
     }
 
-    public void OnClickQuizButton(int idx)
+    public async void OnClickQuizButton(int idx)
     {
         timer.PauseTimer();
         
         if (_answerIdx == idx)
         {
-            ShowPanel(PanelType.Correct);
+            await Flip(PanelType.Correct);
         }
         else
         {
-            ShowPanel(PanelType.Incorrect);
+            heartPanelController.InitHeartCount(GameManager.Instance.HeartCount);
+            await Flip(PanelType.Incorrect);
         }
     }
     
@@ -108,24 +110,24 @@ public class QuizCardController : MonoBehaviour
         GameManager.Instance.QuitGame();
     }
     
-    public void OnClickRetryButton()
+    public async void OnClickRetryButton()
     {
         if (GameManager.Instance.HeartCount > 0)
         {
+            await heartPanelController.RemoveHeart();
             GameManager.Instance.HeartCount--;
-            ShowPanel(PanelType.Front);
+            await Flip(PanelType.Front);
             StartQuiz();
         }
         else
         {
-            //TODO: 하트 부족 알림
-            Debug.Log("Heart is 0");
+            heartPanelController.EmptyHeart();
         }
     }
 
     private void OnChangedHeart()
     {
-        heartCountText.text = GameManager.Instance.HeartCount.ToString();
+        heartPanelController.InitHeartCount(GameManager.Instance.HeartCount);
     }
 
     private void ShowPanel(PanelType type)
@@ -174,5 +176,20 @@ public class QuizCardController : MonoBehaviour
     private void OnTimerExpired()
     {
         ShowPanel(PanelType.Incorrect);
+    }
+
+    private async Task Flip(PanelType type)
+    {
+        var sequence = DOTween.Sequence();
+
+        sequence.Append(transform.DORotate(new Vector3(0, 90f, 0), .2f));
+        sequence.AppendCallback(() =>
+        {
+            transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+            ShowPanel(type);
+        });
+        sequence.Append(transform.DORotate(new Vector3(0, 0f, 0), .2f).SetEase(Ease.OutBounce));
+        
+        await sequence.AsyncWaitForCompletion();
     }
 }

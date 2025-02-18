@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -7,7 +8,12 @@ public class MainPanelController : MonoBehaviour
 {
     [SerializeField] private TMP_Text _heartText;
     [SerializeField] private TMP_Text _stageText;
-    
+
+    private void Start()
+    {
+        
+    }
+
     public void OnClickPlayButton()
     {
         GameManager.Instance.StartGame();
