@@ -17,18 +17,15 @@ public class HeartPanelController : MonoBehaviour
     [SerializeField] private List<AudioClip> _heartSFX;
     public enum SFXType { Remove, Add, Empty };
     
-    private int _heartCount;
-
     private void Start()
     {
         _heartEffectImage.SetActive(false);
-        _heartCountText.text = _heartCount.ToString();
+        InitHeartCount(UserInformations.HeartCount);
     }
 
     public void InitHeartCount(int heartCount)
     {
-        _heartCount = heartCount;
-        _heartCountText.text = _heartCount.ToString();
+        _heartCountText.text = GameManager.Instance.HeartCount.ToString();
     }
     
     public void AddHeart(int heartCount)
@@ -39,7 +36,7 @@ public class HeartPanelController : MonoBehaviour
         {
             sequence.AppendCallback(() =>
             {
-                ChangeTextAnimation(true);
+                ChangeTextAnimation(true, ()=>{GameManager.Instance.HeartCount++;});
                 if (UserInformations.IsPlaySFX)
                 {
                     _audioSource.PlayOneShot(_heartSFX[(int)SFXType.Add]);
@@ -47,9 +44,6 @@ public class HeartPanelController : MonoBehaviour
             });
             sequence.AppendInterval(0.5f);
         }
-        
-        //Test Code
-        GameManager.Instance.HeartCount += heartCount;
     }
 
     public async Task RemoveHeart()
@@ -66,7 +60,7 @@ public class HeartPanelController : MonoBehaviour
     
         // 1초 대기 후 텍스트 애니메이션
         sequence.AppendCallback(() => {
-            ChangeTextAnimation(false);
+            ChangeTextAnimation(false, () => { GameManager.Instance.HeartCount--; });
             if (UserInformations.IsPlaySFX)
             {
                 _audioSource.PlayOneShot(_heartSFX[(int)SFXType.Remove]);
@@ -87,7 +81,7 @@ public class HeartPanelController : MonoBehaviour
         }
     }
 
-    private void ChangeTextAnimation(bool isAdd)
+    private void ChangeTextAnimation(bool isAdd, Action callback = null)
     {
         float duration = 0.2f;
         float yPos = 40f;
@@ -97,16 +91,18 @@ public class HeartPanelController : MonoBehaviour
         {
             if (isAdd)
             {
-                _heartCountText.text = (++_heartCount).ToString();
+                _heartCountText.text = (GameManager.Instance.HeartCount + 1).ToString();
             }
             else
             {
-                _heartCountText.text = (--_heartCount).ToString();
+                _heartCountText.text = (GameManager.Instance.HeartCount - 1).ToString();
             }
             
             _heartCountText.rectTransform.DOAnchorPosY(yPos, 0);
             _heartCountText.rectTransform.DOAnchorPosY(0, duration);
             _heartCountText.DOFade(1f, duration);
+            
+            callback?.Invoke();
         });
     }
 }
