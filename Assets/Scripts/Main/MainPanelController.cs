@@ -12,7 +12,12 @@ public class MainPanelController : MonoBehaviour
     [SerializeField] private TMP_Text _stageText;
     [SerializeField] private GameObject _startButtonEffectImage;
     [SerializeField] private HeartPanelController _heartPanelController;
-
+    
+    [SerializeField] private Canvas _mainCanvas;
+    [SerializeField] private PopupPanelController _settingPanelPrefab;
+    [SerializeField] private PopupPanelController _shopPanelPrefab;
+    [SerializeField] private PopupPanelController _stagePanelPrefab;
+    
     private void Start()
     {
         _stageText.text = $"Stage {UserInformations.LastStageIndex + 1}";
@@ -35,22 +40,21 @@ public class MainPanelController : MonoBehaviour
 
     public void OnClickShopButton()
     {
-        
+        Instantiate(_shopPanelPrefab, _mainCanvas.transform);
     }
     
     public void OnClickStageButton()
     {
-        
+        Instantiate(_stagePanelPrefab, _mainCanvas.transform);
     }
     
     public void OnClickLeaderboardButton()
     {
-        
     }
     
     public void OnClickSettingsButton()
     {
-        
+        Instantiate(_settingPanelPrefab, _mainCanvas.transform);
     }
 
     #endregion

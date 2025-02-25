@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VFolders.Libs;
 
+[RequireComponent(typeof(ObjectPool))]
 public class GamePanelController : MonoBehaviour
 {
     [SerializeField] private GameObject quizCardPrefab;
@@ -20,6 +21,7 @@ public class GamePanelController : MonoBehaviour
     private CanvasGroup _gamePanelCanvasGroup;
     private List<QuizData> _quizDataList = new();
     private List<QuizCardController> _cardControllers = new();
+    private ObjectPool _objectPool;
     private int _quizIdx;
     private int _lastStageIndex;
 
@@ -27,6 +29,7 @@ public class GamePanelController : MonoBehaviour
     {
         _bgImage = GetComponent<Image>();
         _gamePanelCanvasGroup = GetComponent<CanvasGroup>();
+        _objectPool = GetComponent<ObjectPool>();
     }
 
     private void Start()
@@ -58,7 +61,7 @@ public class GamePanelController : MonoBehaviour
         _quizDataList = QuizDataController.LoadQuizData(_lastStageIndex + 1);
 
         {
-            var newCard = ObjectPool.Instance.GetObject();
+            var newCard = _objectPool.GetObject(quizCardPrefab);
             newCard.transform.SetParent(quizCardParent, false);
             
             if (newCard.TryGetComponent<QuizCardController>(out var controller))
@@ -70,7 +73,7 @@ public class GamePanelController : MonoBehaviour
         }
         
         {
-            var newCard = ObjectPool.Instance.GetObject();
+            var newCard = _objectPool.GetObject(quizCardPrefab);
             newCard.transform.SetParent(quizCardParent, false);
             
             if (newCard.TryGetComponent<QuizCardController>(out var controller))
@@ -82,7 +85,7 @@ public class GamePanelController : MonoBehaviour
         }
         
         {
-            var newCard = ObjectPool.Instance.GetObject();
+            var newCard = _objectPool.GetObject(quizCardPrefab);
             newCard.transform.SetParent(quizCardParent, false);
             
             if (newCard.TryGetComponent<QuizCardController>(out var controller))
