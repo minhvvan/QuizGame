@@ -14,6 +14,8 @@ public class Switch : MonoBehaviour
     private RectTransform _rectTransform;
     private Button _button;
     private bool _bActive;
+    
+    public Action<bool> OnSwitchChanged;
 
     private void Awake()
     {
@@ -24,10 +26,17 @@ public class Switch : MonoBehaviour
         SetOn();
     }
 
+    public void SetValue(bool value)
+    {
+        if(value) SetOn();
+        else SetOff();
+    }
+
     void OnClickSwitch()
     {
         if (_bActive) SetOff();
         else SetOn();
+        OnSwitchChanged?.Invoke(_bActive);
     }
 
     void SetOn()

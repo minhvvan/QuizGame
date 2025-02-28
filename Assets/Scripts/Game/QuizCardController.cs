@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DG.Tweening;
+using GoogleMobileAds.Api;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -125,6 +126,8 @@ public class QuizCardController : MonoBehaviour
     [SerializeField] private TMP_Text questionText;
     [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private Button[] optionButtons;
+    [SerializeField] private Button retryButton;
+    [SerializeField] private Button getADHeartButton;
 
     [SerializeField] private GameObject threeOptionButtons;
     [SerializeField] private GameObject OXOptionButtons;
@@ -148,8 +151,8 @@ public class QuizCardController : MonoBehaviour
 
     public enum PanelType { Front, Correct, Incorrect }
     public enum QuizCardPositionType { First, Second, Remove }
-    
-    private int _idx;
+
+    public int Idx { get; set; }
     private int _answerIdx;
     public delegate void QuizCardDelegate(int cardIndex);
     public delegate void QuizCardResultDelegate(bool bCorrect);
@@ -158,6 +161,8 @@ public class QuizCardController : MonoBehaviour
 
     private Vector2 _correctBackPanelPosition;
     private Vector2 _incorrectBackPanelPosition;
+    
+    private Animator _animator;
     
     // 퀴즈 카드 위치 상태
     private IQuizCardPositionState _positionStateFirst;
@@ -174,6 +179,7 @@ public class QuizCardController : MonoBehaviour
     {
         _correctBackPanelPosition = correctBackPanel.GetComponent<RectTransform>().anchoredPosition;
         _incorrectBackPanelPosition = incorrectBackPanel.GetComponent<RectTransform>().anchoredPosition;
+        _animator = GetComponent<Animator>();
 
         // 상태 관리를 위한 Context 객체 생성
         _positionStateContext = new QuizCardPositionStateContext();
@@ -186,7 +192,9 @@ public class QuizCardController : MonoBehaviour
         
         timer.onTimerExpired += OnTimerExpired;
         timer.gameObject.SetActive(false);
-        GameManager.Instance.onChangeHeart += OnChangedHeart;
+        
+        retryButton.onClick.AddListener(OnClickRetryButton);
+        getADHeartButton.onClick.AddListener(OnClickAdButton);
     }
 
     public void SetQuiz(QuizData quizData, QuizCardDelegate onCompleted, QuizCardResultDelegate onResult, int idx)
@@ -218,7 +226,7 @@ public class QuizCardController : MonoBehaviour
         ShowPanel(PanelType.Front);
         this.onCompleted = onCompleted;
         this.onResult = onResult;
-        _idx = idx;
+        Idx = idx;
     }
     
     public void SetQuizCardPosition(QuizCardPositionType quizCardPositionType, bool withAnimation, Action onComplete = null)
@@ -266,7 +274,7 @@ public class QuizCardController : MonoBehaviour
         }
     }
 
-    public async void OnClickQuizButton(int idx)
+    public void OnClickQuizButton(int idx)
     {
         timer.PauseTimer();
         
@@ -277,49 +285,72 @@ public class QuizCardController : MonoBehaviour
             
             if (_answerIdx == idx)
             {
-                onResult?.Invoke(true);
-
-                correctUpPanel.SetActive(true);
-                quizUpPanel.SetActive(false);
-                incorrectUpPanel.SetActive(false);
-                
                 buttonImage.color = buttonColors[1];
-                var effect = correctEffect.GetComponent<Image>();
-                correctEffect.transform.localScale = Vector3.one;
-                effect.DOFade(1f, 0f);
-                
-                var sequence = DOTween.Sequence();
-                sequence.Append(correctEffect.transform.DOScale(Vector3.one * 1.2f, 1f))
-                    .Join(effect.DOFade(0f, 1f))
-                    .AppendInterval(0.5f)
-                    .OnComplete(() =>
-                    {
-                        Flip(PanelType.Correct, true);
-                        correctEffect.transform.localScale = Vector3.one;
-                        effect.DOFade(1f, 0f);
-                    });
+                ShowCorrectPanel();
             }
             else
             {
-                onResult?.Invoke(false);
-                
-                quizSlider.value = (float)_idx / Constants.MAX_QUIZ_COUNT;
-                quizText.text = $"레벨 업 까지 {Constants.MAX_QUIZ_COUNT - _idx} 문제 남았습니다.";
-                
-                incorrectUpPanel.SetActive(true);
-                quizUpPanel.SetActive(false);
-                correctUpPanel.SetActive(false);
                 buttonImage.color = buttonColors[2];
-             
-                var sequence = DOTween.Sequence();
-                sequence.Append(transform.DOPunchRotation(new Vector3(0, 0, 15f), .5f, 10, 1f))
-                    .AppendInterval(0.5f)
-                    .OnComplete(() =>
-                    {
-                        Flip(PanelType.Incorrect, true);
-                    });
+                ShowIncorrectPanel();
             }
         }
+    }
+
+    private void ShowCorrectPanel()
+    {
+        _animator.Play("CorrectAnim", 0, 0f);
+        onResult?.Invoke(true);
+
+        correctUpPanel.SetActive(true);
+        quizUpPanel.SetActive(false);
+        incorrectUpPanel.SetActive(false);
+                
+        var effect = correctEffect.GetComponent<Image>();
+        correctEffect.transform.localScale = Vector3.one;
+        effect.DOFade(1f, 0f);
+                
+        var sequence = DOTween.Sequence();
+        sequence.Append(correctEffect.transform.DOScale(Vector3.one * 1.2f, 1f))
+            .Join(effect.DOFade(0f, 1f))
+            .AppendInterval(0.5f)
+            .OnComplete(() =>
+            {
+                Flip(PanelType.Correct, true);
+                correctEffect.transform.localScale = Vector3.one;
+                effect.DOFade(1f, 0f);
+            });
+    }
+
+    private void ShowIncorrectPanel()
+    {
+        _animator.Play("IncorrectAnim", 0, 0f);
+        onResult?.Invoke(false);
+                
+        quizSlider.value = (float)Idx / Constants.MAX_QUIZ_COUNT;
+        quizText.text = $"레벨 업 까지 {Constants.MAX_QUIZ_COUNT - Idx} 문제 남았습니다.";
+
+        if (GameManager.Instance.HeartCount == 0)
+        {
+            getADHeartButton.gameObject.SetActive(true);
+            retryButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            getADHeartButton.gameObject.SetActive(false);
+            retryButton.gameObject.SetActive(true);
+        }
+        
+        incorrectUpPanel.SetActive(true);
+        quizUpPanel.SetActive(false);
+        correctUpPanel.SetActive(false);
+             
+        var sequence = DOTween.Sequence();
+        sequence.Append(transform.DOPunchRotation(new Vector3(0, 0, 15f), .5f, 10, 1f))
+            .AppendInterval(0.5f)
+            .OnComplete(() =>
+            {
+                Flip(PanelType.Incorrect, true);
+            });
     }
 
     private void SetContentColor(int idx, Button clickedButton, bool bClicked)
@@ -354,7 +385,7 @@ public class QuizCardController : MonoBehaviour
 
     public void OnClickNextQuizButton()
     {
-        onCompleted?.Invoke(_idx);
+        onCompleted?.Invoke(Idx);
     }
     
     public void OnClickExitButton()
@@ -374,10 +405,15 @@ public class QuizCardController : MonoBehaviour
             heartPanelController.EmptyHeart();
         }
     }
-
-    private void OnChangedHeart()
+    
+    private void OnClickAdButton()
     {
-        heartPanelController.InitHeartCount(GameManager.Instance.HeartCount);
+        AdmobAdsManager.Instance.ShowRewardedAd((Reward reward) =>
+        {
+            getADHeartButton.gameObject.SetActive(false);
+            retryButton.gameObject.SetActive(true);
+            GameManager.Instance.HeartCount += (int)reward.Amount;
+        });
     }
 
     public void ShowPanel(PanelType type)

@@ -20,7 +20,13 @@ public class HeartPanelController : MonoBehaviour
     private void Start()
     {
         _heartEffectImage.SetActive(false);
-        InitHeartCount(UserInformations.HeartCount);
+        GameManager.Instance.onChangeHeart += OnChangedHeart;
+        InitHeartCount(GameManager.Instance.HeartCount);
+    }
+
+    private void OnChangedHeart()
+    {
+        InitHeartCount(GameManager.Instance.HeartCount);
     }
 
     public void InitHeartCount(int heartCount)

@@ -16,7 +16,7 @@ public class StagePopupPanelController : MonoBehaviour
     {
         GetComponent<PopupPanelController>().SetTitle("STAGE");
 
-        int lastStageIndex = 90;
+        int lastStageIndex = UserInformations.LastStageIndex;
         for (int i = 0; i < Constants.MAX_STAGE_COUNT; i++)
         {
             StageCellItem newCell = new();

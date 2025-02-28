@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using GoogleMobileAds.Api;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,10 @@ public class ShopPanelController : MonoBehaviour
             }
             case 1:
             {
+                AdmobAdsManager.Instance.ShowRewardedAd((Reward reward) =>
+                {
+                    GameManager.Instance.HeartCount += (int)reward.Amount;
+                });
                 break;
             }
             case 2:

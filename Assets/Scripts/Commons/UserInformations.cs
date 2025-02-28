@@ -20,6 +20,7 @@ public static class UserInformations
         set
         {
             PlayerPrefs.SetInt(HEART_COUNT, value);
+            PlayerPrefs.Save();
         }
     }
 
@@ -32,6 +33,7 @@ public static class UserInformations
         set
         {
             PlayerPrefs.SetInt(LAST_STAGE, value);
+            PlayerPrefs.Save();
         }
     }
 
@@ -44,6 +46,7 @@ public static class UserInformations
         set
         {
             PlayerPrefs.SetInt(PLAY_SFX, value ? 1 : 0);
+            PlayerPrefs.Save();
         }
     }
     
@@ -56,6 +59,7 @@ public static class UserInformations
         set
         {
             PlayerPrefs.SetInt(PLAY_BGM, value ? 1 : 0);
+            PlayerPrefs.Save();
         }
     }
 }

@@ -76,10 +76,8 @@ public class ScrollViewController : MonoBehaviour
         contentSizeDelta.y = (int)((_items.Count / columns) + 1) * (cellSize.y + spacing.y);
         _scrollRect.content.sizeDelta = contentSizeDelta;
 
-        //TODO: UserInfo로 관리(임시값)
         //현재 Stage로 이동
-        var lastStageIndex = 90;
-        int row = lastStageIndex / columns;
+        int row = UserInformations.LastStageIndex / columns;
         var contentPos = row * cellSize.y + row * spacing.y ;
         _scrollRect.content.anchoredPosition = new Vector2(0, contentPos);
 

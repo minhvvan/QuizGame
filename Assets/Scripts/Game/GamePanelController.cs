@@ -6,7 +6,6 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using VFolders.Libs;
 
 [RequireComponent(typeof(ObjectPool))]
 public class GamePanelController : MonoBehaviour
@@ -16,6 +15,9 @@ public class GamePanelController : MonoBehaviour
     [SerializeField] private GameObject pangEffect;
     [SerializeField] private List<Color> bgColors = new ();
     [SerializeField] private GameObject levelPanel;
+    [SerializeField] private GameObject resultPanel;
+    [SerializeField] private GameObject resultEffect;
+    [SerializeField] private GameObject resultPopup;
 
     private Image _bgImage;
     private CanvasGroup _gamePanelCanvasGroup;
@@ -104,13 +106,41 @@ public class GamePanelController : MonoBehaviour
     {
         if (cardIndex == _quizDataList.Count - 1)
         {
-            //TODO: Stage 전체 Clear 처리
-            //TODO: Clear 연출
-            _lastStageIndex++;
-            InitQuizCard();
+            UserInformations.LastStageIndex = ++_lastStageIndex;
+            _cardControllers[cardIndex % 3].SetQuizCardPosition(QuizCardController.QuizCardPositionType.Remove, true, () =>
+                {
+                    StartCoroutine(PlayResultAnim());
+                });
         }
-        
-        ShowNextQuiz(cardIndex);
+        else
+        {
+            ShowNextQuiz(cardIndex);
+        }
+    }
+    
+    private IEnumerator PlayResultAnim()
+    {
+        if (resultPanel.TryGetComponent<Animator>(out var animator))
+        {
+            resultPanel.SetActive(true);
+            resultEffect.gameObject.SetActive(true);
+            resultPopup.gameObject.SetActive(false);
+            
+            animator.Play("ResultAnim", 0, 0f);
+            
+            yield return null;
+    
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+    
+            while (stateInfo.normalizedTime < 1.0f)
+            {
+                stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                yield return null;
+            }
+            
+            resultEffect.gameObject.SetActive(false);
+            resultPopup.gameObject.SetActive(true);
+        }
     }
 
     private void OnQuizResult(bool bCorrect)
@@ -147,20 +177,41 @@ public class GamePanelController : MonoBehaviour
             {
                 _cardControllers[currentCardIdx].SetQuiz(_quizDataList[_quizIdx], OnCompletedQuiz, OnQuizResult, _quizIdx);
             }
+            else
+            {
+                _cardControllers[currentCardIdx].Idx = _quizIdx;
+            }
             
             _quizIdx++;
 
-            if (currentIdx + 1 >= _quizDataList.Count) return;
             int first = (currentIdx + 1) % 3;
             int second = (currentIdx + 2) % 3;
-            
-            _cardControllers[first].gameObject.SetActive(true);
-            _cardControllers[second].gameObject.SetActive(true);
-            
-            _cardControllers[first].SetQuizCardPosition(QuizCardController.QuizCardPositionType.First, true);
-            _cardControllers[second].SetQuizCardPosition(QuizCardController.QuizCardPositionType.Second, true);
 
-            _cardControllers[first].StartQuiz();
+            if (_cardControllers[first].Idx < _quizDataList.Count)
+            {
+                _cardControllers[first].gameObject.SetActive(true);
+                _cardControllers[first].SetQuizCardPosition(QuizCardController.QuizCardPositionType.First, true);
+            
+                _cardControllers[first].StartQuiz();
+            }
+
+            if (_cardControllers[second].Idx  < _quizDataList.Count)
+            {
+                _cardControllers[second].gameObject.SetActive(true);
+                _cardControllers[second].SetQuizCardPosition(QuizCardController.QuizCardPositionType.Second, true);
+            }
         });
+    }
+
+    public void OnClickNextLevel()
+    {
+        ShowLevel();
+        resultPopup.gameObject.SetActive(false);
+    }
+
+    public void OnClickQuit()
+    {
+        GameManager.Instance.QuitGame();
+        resultPopup.gameObject.SetActive(false);
     }
 }
