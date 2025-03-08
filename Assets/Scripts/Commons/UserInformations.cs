@@ -10,6 +10,7 @@ public static class UserInformations
     private const string LAST_STAGE = "LastStage";
     private const string PLAY_SFX = "PlaySFX";
     private const string PLAY_BGM = "PlayBGM";
+    private const string NO_ADS = "NoAds";
     
     public static int HeartCount
     {
@@ -62,4 +63,15 @@ public static class UserInformations
             PlayerPrefs.Save();
         }
     }
+
+    public static bool IsNoAds
+    {
+        get {return PlayerPrefs.GetInt(NO_ADS, 0) == 0;}
+        set
+        {
+            PlayerPrefs.SetInt(NO_ADS, value ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+    }
+
 }

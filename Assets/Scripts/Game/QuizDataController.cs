@@ -6,6 +6,7 @@ public static class QuizDataController
 {
     static string ROW_SEPARATOR = @"\r\n|\n\r|\n|\r";
     static string COL_SEPARATOR = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";
+    
     private static char[] TRIM_CHARS = { '\"' };
     
     public static List<QuizData> LoadQuizData(int stageIndex)
@@ -53,17 +54,9 @@ public static class QuizDataController
                 }
             }
             
-            // QuizData quizData = new QuizData();
-            // quizData.question = values[0];
-            // quizData.description = values[1];
-            // quizData.type = int.Parse(values[2]);
-            // quizData.answer = int.Parse(values[3]);
-            //
-            // string[] options = { values[4], values[5], values[6] };
-            // quizData.options = options;
-            
             quizDataList.Add(quizData);
         }
+        
         return quizDataList;
     }
 }

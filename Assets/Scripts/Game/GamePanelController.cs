@@ -60,7 +60,7 @@ public class GamePanelController : MonoBehaviour
 
     private void InitQuizCard()
     {
-        _quizDataList = QuizDataController.LoadQuizData(_lastStageIndex + 1);
+        _quizDataList = QuizDataController.LoadQuizData(_lastStageIndex);
 
         {
             var newCard = _objectPool.GetObject(quizCardPrefab);
